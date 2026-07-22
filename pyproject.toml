@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clientrevive-ops"
+version = "1.0.0"
+description = "Deterministic customer-renewal risk MCP server for Archestra"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+dependencies = [
+  "joblib==1.5.2",
+  "mcp==1.28.1",
+  "numpy==2.2.6",
+  "pandas==2.2.3",
+  "pydantic==2.11.7",
+  "pydantic-settings==2.10.1",
+  "scikit-learn==1.7.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.4.2",
+  "pytest-cov==7.0.0",
+  "ruff==0.13.3",
+]
+
+[project.scripts]
+clientrevive = "clientrevive.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clientrevive"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --cov=clientrevive --cov-report=term-missing --cov-fail-under=80"
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
