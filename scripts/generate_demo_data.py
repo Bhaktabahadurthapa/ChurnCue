@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 SEED = 42
-ROW_COUNT = 500
+ROW_COUNT = 50
 
 
 def generate_demo_data(row_count: int = ROW_COUNT, seed: int = SEED) -> pd.DataFrame:
