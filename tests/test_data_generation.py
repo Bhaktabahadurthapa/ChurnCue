@@ -4,7 +4,7 @@ from scripts.generate_demo_data import generate_demo_data
 def test_generation_is_reproducible_and_anonymous():
     first = generate_demo_data()
     second = generate_demo_data()
-    assert len(first) == 500
+    assert len(first) == 50
     assert first.equals(second)
     assert first.customer_id.str.match(r"CUST-\d+").all()
     assert set(first.churned) == {0, 1}

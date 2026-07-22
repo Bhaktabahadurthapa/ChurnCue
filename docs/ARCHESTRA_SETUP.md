@@ -45,9 +45,9 @@ Open the installed connection's MCP Inspector, connect, list tools, select `heal
 
 Create/open the Archestra App, assign all eight ChurnCue tools, and paste `ARCHESTRA_APP_PROMPT.md` into Archestra Chat. Tool assignment is required; the generated app must not calculate or fabricate ML output in browser code.
 
-## 7. Connect Google Sheets
+## 7. Add production data ingestion later
 
-In MCP Registry, install/configure a trusted Google Sheets MCP server. Store OAuth credentials in Archestra, scope access to the demo spreadsheet, test its read/list tool, and assign only the required read tools to the app. Map its returned rows to ChurnCue tool `rows` arguments. Never add real PII to the hackathon sheet.
+The demo loader stores its synthetic rows inside ChurnCue and returns a `dataset_id`; no customer rows cross the LLM boundary. A production Google Sheets or warehouse adapter should ingest directly into trusted service-side storage and return the same identifier contract. Do not map complete external rows through Archestra chat tool arguments.
 
 ## 8. Connect Slack
 

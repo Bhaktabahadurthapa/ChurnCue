@@ -14,13 +14,13 @@ def test_all_models_metrics_and_persistence(trained):
         "random_forest",
         "gradient_boosting",
     }
-    assert result["train_row_count"] == 400
-    assert result["test_row_count"] == 100
+    assert result["train_row_count"] == 40
+    assert result["test_row_count"] == 10
     for metrics in result["metrics"].values():
         assert all(
             0 <= metrics[key] <= 1 for key in ["accuracy", "precision", "recall", "f1", "roc_auc"]
         )
-        assert sum(metrics["confusion_matrix"].values()) == 100
+        assert sum(metrics["confusion_matrix"].values()) == 10
     saved = ExperimentStore(settings).get(result["experiment_id"])
     assert saved["recommended_model"] == result["recommended_model"]
     assert Path(saved["model_artifact_path"]).is_file()

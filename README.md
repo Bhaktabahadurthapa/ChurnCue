@@ -46,10 +46,7 @@ ChurnCue converts anonymous customer-health records into a prioritized, evidence
 
 ```mermaid
 flowchart LR
-  subgraph Sources[Customer data]
-    Sheets[Google Sheets MCP]
-    Demo[Anonymous demo CSV]
-  end
+  Demo[Anonymous demo CSV]
 
   subgraph Archestra[Archestra]
     App[ChurnCue App]
@@ -58,29 +55,34 @@ flowchart LR
   end
 
   subgraph Service[ChurnCue MCP]
+    Load[Load + store dataset]
     Profile[Profile + validate]
     Train[Train + compare]
     Score[Score + explain]
     Report[Rescue report]
+    Runtime[(Dataset + score-run state)]
   end
 
-  Sheets --> App
-  Demo --> Orchestrator
-  App --> Orchestrator --> Profile --> Train --> Score --> Report
+  Demo --> Load
+  App --> Orchestrator --> Load
+  Load -->|dataset_id| Profile --> Train --> Score
+  Score -->|score_run_id| Report
+  Load --> Runtime
+  Score --> Runtime
   Train --> Metadata[(SQLite metadata)]
   Train --> Artifacts[(joblib artifacts)]
   Report --> Approval
   Approval -->|approved only| Slack[Slack MCP]
 ```
 
-**Archestra** is the authenticated application interface and MCP orchestrator. **ChurnCue MCP** owns deterministic analysis. **Google Sheets MCP** supplies demo-safe records. **Slack MCP** receives only messages that a human approves.
+**Archestra** is the authenticated application interface and MCP orchestrator. **ChurnCue MCP** stores demo rows internally and exposes only compact dataset and score-run identifiers to the model. **Slack MCP** receives only messages that a human approves.
 
 ## Weekly review flow
 
 ```text
-Load rows → Profile quality → Train 3 models → Select by ROC-AUC/F1
-         → Score customers → Compare weekly risk → Build rescue report
-         → Preview Slack message → Human approval → Slack MCP sends
+Load demo → dataset_id → Profile quality → Train 3 models → experiment_id
+          → Score customers → score_run_id → Compare risk → Rescue report
+          → Preview Slack message → Human approval → Slack MCP sends
 ```
 
 ## Quickstart
@@ -132,19 +134,20 @@ Linux-hosted Archestra containers may need `host.docker.internal:host-gateway`. 
 | Tool | Responsibility | Key output |
 |---|---|---|
 | `health_check` | Runtime readiness | Name, version, transport, timestamp |
-| `load_demo_dataset` | Bounded anonymous demo loader | Structured customer records |
+| `load_demo_dataset` | Store bounded anonymous demo data | Dataset ID, count, compact summary |
 | `profile_dataset` | Schema and quality analysis | Types, missing values, duplicates, summaries |
 | `train_models` | Reproducible model evaluation | Metrics, confusion matrices, recommended model |
-| `score_customers` | Probability and exposure scoring | Risk tier, revenue at risk, top signals |
-| `compare_weekly_risk` | Week-over-week movement | Change, direction, newly-at-risk flag |
+| `score_customers` | Score a dataset by ID | Score-run ID, totals, top-risk preview |
+| `compare_weekly_risk` | Compare a score run by ID | Movement totals and top-change preview |
 | `explain_risk` | Deterministic reason codes | Evidence and non-causality statement |
 | `generate_rescue_report` | Operational prioritization | Totals, priority queue, Slack-ready preview |
 
 Recommended call order:
 
 ```text
-load_demo_dataset → profile_dataset → train_models → score_customers
-                  → compare_weekly_risk → generate_rescue_report
+load_demo_dataset → dataset_id → profile_dataset + train_models
+dataset_id + experiment_id → score_customers → score_run_id
+score_run_id → compare_weekly_risk + explain_risk + generate_rescue_report
 ```
 
 ## Machine-learning pipeline
@@ -161,7 +164,7 @@ load_demo_dataset → profile_dataset → train_models → score_customers
 | Selection | Highest ROC-AUC with F1 as the tie-breaker |
 | Persistence | Complete pipeline in joblib; immutable experiment metadata in SQLite |
 
-The included dataset contains 500 reproducible synthetic customers and no real personal data.
+The included dataset contains 50 reproducible synthetic customers and no real personal data.
 
 ## Configuration
 
@@ -175,7 +178,7 @@ All runtime variables use the `CHURNCUE_` prefix. Safe defaults are documented i
 | `CHURNCUE_ARTIFACT_DIR` | `data/artifacts` | Trusted model artifact directory |
 | `CHURNCUE_DEMO_DATA_PATH` | `data/demo/customer_churn_demo.csv` | Packaged demo source |
 | `CHURNCUE_MAX_INPUT_ROWS` | `5000` | Maximum MCP input records |
-| `CHURNCUE_MAX_DEMO_ROWS` | `500` | Maximum demo records returned |
+| `CHURNCUE_MAX_DEMO_ROWS` | `50` | Maximum records stored in one demo dataset |
 | `CHURNCUE_MAX_STRING_LENGTH` | `200` | Scalar string boundary |
 | `CHURNCUE_RANDOM_STATE` | `42` | Reproducible ML seed |
 | `CHURNCUE_PUBLISHED_PORT` | `8000` | Optional Compose host-port override |
@@ -185,6 +188,7 @@ No API keys or customer credentials belong in this repository.
 ## Security and privacy
 
 - Anonymous `CUST-*` identifiers only; common PII fields are rejected at the MCP boundary.
+- Dataset and score rows stay inside the ChurnCue process; MCP calls use opaque identifiers.
 - Row, field, string, probability, and schema limits defend resource boundaries.
 - Experiment IDs resolve only to service-created artifacts below the configured directory.
 - The service performs no arbitrary code execution, arbitrary path reads, browser fetches, or outbound messages.

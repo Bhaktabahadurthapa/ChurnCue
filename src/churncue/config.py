@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     artifact_dir: Path = Path("data/artifacts")
     demo_data_path: Path = Path("data/demo/customer_churn_demo.csv")
     max_input_rows: int = Field(default=5_000, ge=1, le=50_000)
-    max_demo_rows: int = Field(default=500, ge=1, le=5_000)
+    max_demo_rows: int = Field(default=50, ge=1, le=5_000)
     max_string_length: int = Field(default=200, ge=16, le=2_000)
     random_state: int = 42
 
