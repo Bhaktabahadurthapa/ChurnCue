@@ -82,6 +82,22 @@ flowchart LR
 
 **Archestra** is the authenticated application interface and MCP orchestrator. **ChurnCue MCP** stores demo rows internally and exposes only compact dataset and score-run identifiers to the model. **Slack MCP** receives only messages that a human approves.
 
+## Governed rescue workflow
+
+<div align="center">
+  <img src="docs/assets/churncue-governed-rescue-workflow.png" alt="Block diagram showing a customer-success manager asking ChurnCue who may leave, with Archestra governing tool access, ChurnCue MCP running the machine-learning pipeline, the model explaining verified results, and a prioritized rescue report returning to the manager" width="100%" />
+  <p><em>ML predicts, MCP connects, the model explains, and Archestra controls the complete workflow.</em></p>
+</div>
+
+The block diagram follows a real customer-success request: **“Which customers are most likely to leave this week, and whom should we contact first?”**
+
+1. The manager asks the business question in Archestra.
+2. The Archestra agent selects only the approved ChurnCue tools. Access controls, guardrails, and activity logs govern the interaction.
+3. ChurnCue MCP exposes the prediction workflow through eight bounded tools.
+4. The deterministic machine-learning pipeline trains, scores, and ranks customers, returning verified scores and compact identifiers.
+5. The model explains those tool-produced results without inventing calculations.
+6. Archestra presents a prioritized rescue report so the manager knows whom to contact first.
+
 ## Weekly review flow
 
 ```text
