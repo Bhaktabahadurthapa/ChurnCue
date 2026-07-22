@@ -44,6 +44,11 @@ ChurnCue converts anonymous customer-health records into a prioritized, evidence
 
 ## System architecture
 
+<div align="center">
+  <img src="docs/assets/churncue-end-to-end-handwritten.png" alt="Handwritten end-to-end ChurnCue architecture showing the Archestra, MCP gateway, dataset, experiment, and scoring flow" width="100%" />
+  <p><em>Customer records stay inside ChurnCue while compact identifiers move safely between MCP tools.</em></p>
+</div>
+
 ```mermaid
 flowchart LR
   Demo[Anonymous demo CSV]
