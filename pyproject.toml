@@ -3,7 +3,7 @@ requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "clientrevive-ops"
+name = "churncue"
 version = "1.0.0"
 description = "Deterministic customer-renewal risk MCP server for Archestra"
 readme = "README.md"
@@ -27,13 +27,13 @@ dev = [
 ]
 
 [project.scripts]
-clientrevive = "clientrevive.server:main"
+churncue = "churncue.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/clientrevive"]
+packages = ["src/churncue"]
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --cov=clientrevive --cov-report=term-missing --cov-fail-under=80"
+addopts = "--strict-markers --cov=churncue --cov-report=term-missing --cov-fail-under=80"
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 

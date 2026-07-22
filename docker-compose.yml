@@ -1,18 +1,18 @@
 services:
-  clientrevive-mcp:
+  churncue-mcp:
     build: .
     ports:
-      - "${CLIENTREVIVE_PUBLISHED_PORT:-8000}:8000"
+      - "${CHURNCUE_PUBLISHED_PORT:-8000}:8000"
     environment:
-      CLIENTREVIVE_HOST: 0.0.0.0
-      CLIENTREVIVE_PORT: 8000
-      CLIENTREVIVE_DATABASE_PATH: /app/state/clientrevive.db
-      CLIENTREVIVE_ARTIFACT_DIR: /app/data/artifacts
-      CLIENTREVIVE_DEMO_DATA_PATH: /app/data/demo/customer_churn_demo.csv
-      CLIENTREVIVE_LOG_LEVEL: INFO
+      CHURNCUE_HOST: 0.0.0.0
+      CHURNCUE_PORT: 8000
+      CHURNCUE_DATABASE_PATH: /app/state/churncue.db
+      CHURNCUE_ARTIFACT_DIR: /app/data/artifacts
+      CHURNCUE_DEMO_DATA_PATH: /app/data/demo/customer_churn_demo.csv
+      CHURNCUE_LOG_LEVEL: INFO
     volumes:
-      - clientrevive-db:/app/state
-      - clientrevive-artifacts:/app/data/artifacts
+      - churncue-db:/app/state
+      - churncue-artifacts:/app/data/artifacts
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -22,5 +22,5 @@ services:
       - "host.docker.internal:host-gateway"
 
 volumes:
-  clientrevive-db:
-  clientrevive-artifacts:
+  churncue-db:
+  churncue-artifacts:

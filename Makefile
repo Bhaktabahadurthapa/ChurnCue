@@ -8,7 +8,7 @@ data:
 	.venv/bin/python scripts/generate_demo_data.py
 
 run:
-	.venv/bin/clientrevive
+	.venv/bin/churncue
 
 lint:
 	.venv/bin/ruff check .

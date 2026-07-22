@@ -23,13 +23,13 @@ Open `http://localhost:3000`. Docker socket access is powerful and appropriate o
 
 In Studio, open **Model Providers** (older builds may say **Settings → LLM API Keys**), add OpenAI, Anthropic, Gemini, Cerebras, or Ollama, enter the credential in Archestra—not this repository—and test the provider.
 
-## 3. Start ClientRevive
+## 3. Start ChurnCue
 
 From this repository run `docker compose up --build`, then verify `curl http://localhost:8000/health` returns `healthy`.
 
 ## 4. Register the remote MCP server
 
-Open **MCP Registry / Private MCP Registry**, create a remote server named **ClientRevive Ops**, select **Streamable HTTP**, and enter:
+Open **MCP Registry / Private MCP Registry**, create a remote server named **ChurnCue**, select **Streamable HTTP**, and enter:
 
 ```text
 http://host.docker.internal:8000/mcp
@@ -39,23 +39,23 @@ If Archestra itself runs directly on the host, use `http://localhost:8000/mcp`. 
 
 ## 5. Inspect health
 
-Open the installed connection's MCP Inspector, connect, list tools, select `health_check`, and run it with `{}`. Expect service `ClientRevive Ops`, version `1.0.0`, status `healthy`, transport `streamable-http`, and an ISO timestamp. A browser GET is not an MCP tool call and is not a supported app integration.
+Open the installed connection's MCP Inspector, connect, list tools, select `health_check`, and run it with `{}`. Expect service `ChurnCue`, version `1.0.0`, status `healthy`, transport `streamable-http`, and an ISO timestamp. A browser GET is not an MCP tool call and is not a supported app integration.
 
 ## 6. Assign tools to the app
 
-Create/open the Archestra App, assign all eight ClientRevive tools, and paste `ARCHESTRA_APP_PROMPT.md` into Archestra Chat. Tool assignment is required; the generated app must not calculate or fabricate ML output in browser code.
+Create/open the Archestra App, assign all eight ChurnCue tools, and paste `ARCHESTRA_APP_PROMPT.md` into Archestra Chat. Tool assignment is required; the generated app must not calculate or fabricate ML output in browser code.
 
 ## 7. Connect Google Sheets
 
-In MCP Registry, install/configure a trusted Google Sheets MCP server. Store OAuth credentials in Archestra, scope access to the demo spreadsheet, test its read/list tool, and assign only the required read tools to the app. Map its returned rows to ClientRevive tool `rows` arguments. Never add real PII to the hackathon sheet.
+In MCP Registry, install/configure a trusted Google Sheets MCP server. Store OAuth credentials in Archestra, scope access to the demo spreadsheet, test its read/list tool, and assign only the required read tools to the app. Map its returned rows to ChurnCue tool `rows` arguments. Never add real PII to the hackathon sheet.
 
 ## 8. Connect Slack
 
-Install/configure Slack MCP with least-privilege permission for a demo channel. Assign message-preview/read tools as needed and the send tool only to the human-approved action. ClientRevive's report sets `slack_message_sent: false`; only the Slack MCP performs delivery.
+Install/configure Slack MCP with least-privilege permission for a demo channel. Assign message-preview/read tools as needed and the send tool only to the human-approved action. ChurnCue's report sets `slack_message_sent: false`; only the Slack MCP performs delivery.
 
 ## 9. Refresh tools after code changes
 
-Rebuild/restart ClientRevive, return to the installed MCP connection, choose **Refresh/Rescan tools** (or disconnect/reconnect on older builds), verify all schemas in Inspector, then reload/validate the App.
+Rebuild/restart ChurnCue, return to the installed MCP connection, choose **Refresh/Rescan tools** (or disconnect/reconnect on older builds), verify all schemas in Inspector, then reload/validate the App.
 
 ## 10. Troubleshooting
 

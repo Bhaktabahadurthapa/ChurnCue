@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from clientrevive.database import ExperimentStore
-from clientrevive.security import ClientReviveError
-from clientrevive.training import train_model_suite
+from churncue.database import ExperimentStore
+from churncue.security import ChurnCueError
+from churncue.training import train_model_suite
 
 
 def test_all_models_metrics_and_persistence(trained):
@@ -27,8 +27,8 @@ def test_all_models_metrics_and_persistence(trained):
 
 
 def test_small_dataset_rejected(demo_rows, tmp_path):
-    from clientrevive.config import Settings
+    from churncue.config import Settings
 
     settings = Settings(database_path=tmp_path / "db.sqlite", artifact_dir=tmp_path / "artifacts")
-    with pytest.raises(ClientReviveError, match="at least 20"):
+    with pytest.raises(ChurnCueError, match="at least 20"):
         train_model_suite(demo_rows[:10], settings=settings)

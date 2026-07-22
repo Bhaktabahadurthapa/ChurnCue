@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from clientrevive.config import Settings
-from clientrevive.training import train_model_suite
+from churncue.config import Settings
+from churncue.training import train_model_suite
 from scripts.generate_demo_data import generate_demo_data
 
 

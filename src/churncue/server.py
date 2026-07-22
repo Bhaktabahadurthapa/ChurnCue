@@ -1,4 +1,4 @@
-"""ClientRevive Ops MCP tools and Streamable HTTP entrypoint."""
+"""ChurnCue MCP tools and Streamable HTTP entrypoint."""
 
 import logging
 from datetime import UTC, datetime
@@ -9,24 +9,24 @@ from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from clientrevive import __version__
-from clientrevive.config import get_settings
-from clientrevive.database import ExperimentStore
-from clientrevive.explanations import explain_record
-from clientrevive.prediction import compare_risk, score_rows
-from clientrevive.reporting import rescue_report
-from clientrevive.security import ClientReviveError, validate_rows
-from clientrevive.training import train_model_suite
+from churncue import __version__
+from churncue.config import get_settings
+from churncue.database import ExperimentStore
+from churncue.explanations import explain_record
+from churncue.prediction import compare_risk, score_rows
+from churncue.reporting import rescue_report
+from churncue.security import ChurnCueError, validate_rows
+from churncue.training import train_model_suite
 
 settings = get_settings()
 logging.basicConfig(
     level=settings.log_level.upper(),
     format='{"timestamp":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
 )
-logger = logging.getLogger("clientrevive")
+logger = logging.getLogger("churncue")
 
 mcp = FastMCP(
-    "ClientRevive Ops",
+    "ChurnCue",
     instructions="Deterministic customer-renewal risk analysis. Never sends external messages.",
     host=settings.host,
     port=settings.port,
@@ -49,7 +49,7 @@ async def http_health(_: Request) -> JSONResponse:
 def health_check() -> dict[str, Any]:
     """Return service health and transport metadata."""
     return {
-        "service": "ClientRevive Ops",
+        "service": "ChurnCue",
         "version": __version__,
         "status": "healthy",
         "transport": "streamable-http",
@@ -62,12 +62,12 @@ def load_demo_dataset(limit: int | None = None) -> list[dict[str, Any]]:
     """Load anonymous synthetic demo data, subject to a safe row limit."""
     selected_limit = settings.max_demo_rows if limit is None else limit
     if not 1 <= selected_limit <= settings.max_demo_rows:
-        raise ClientReviveError(f"limit must be between 1 and {settings.max_demo_rows}")
+        raise ChurnCueError(f"limit must be between 1 and {settings.max_demo_rows}")
     try:
         frame = pd.read_csv(settings.demo_data_path, nrows=selected_limit)
     except (FileNotFoundError, OSError, pd.errors.ParserError) as error:
         logger.error("demo_dataset_unavailable")
-        raise ClientReviveError("demo dataset is unavailable") from error
+        raise ChurnCueError("demo dataset is unavailable") from error
     return _records(frame)
 
 
@@ -76,7 +76,7 @@ def profile_dataset(rows: list[dict[str, Any]], target_column: str = "churned") 
     """Return deterministic data quality and descriptive statistics."""
     validate_rows(rows)
     if not target_column or len(target_column) > 100:
-        raise ClientReviveError("target_column is invalid")
+        raise ChurnCueError("target_column is invalid")
     frame = pd.DataFrame(rows)
     warnings: list[str] = []
     if target_column not in frame:

@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from clientrevive.preprocessing import build_preprocessor, prepare_training_data
-from clientrevive.security import ClientReviveError
+from churncue.preprocessing import build_preprocessor, prepare_training_data
+from churncue.security import ChurnCueError
 
 
 def test_identifiers_target_and_leakage_are_removed(demo_rows):
@@ -37,5 +37,5 @@ def test_preprocessor_handles_missing_values(demo_rows):
     ],
 )
 def test_invalid_training_data(frame, message):
-    with pytest.raises(ClientReviveError, match=message):
+    with pytest.raises(ChurnCueError, match=message):
         prepare_training_data(frame, "churned")

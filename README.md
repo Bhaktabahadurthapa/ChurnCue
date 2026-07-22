@@ -1,10 +1,10 @@
-# ChurnCue — ClientRevive Ops
+# ChurnCue
 
-ClientRevive Ops is a production-oriented hackathon service that helps customer-success teams identify renewal risk every Monday. Archestra supplies the application interface and MCP orchestration; this server supplies deterministic profiling, model training, scoring, explanations, and reporting.
+ChurnCue is a production-oriented hackathon service that helps customer-success teams identify renewal risk every Monday. Archestra supplies the application interface and MCP orchestration; this server supplies deterministic profiling, model training, scoring, explanations, and reporting.
 
 ## Problem and real business scenario
 
-Customer-success managers need one reliable view of who may cancel, what changed, why the account is flagged, and how much revenue is exposed. Spreadsheet review is slow and inconsistent. ClientRevive turns demo-safe customer data into a review queue while keeping outbound Slack communication behind explicit human approval.
+Customer-success managers need one reliable view of who may cancel, what changed, why the account is flagged, and how much revenue is exposed. Spreadsheet review is slow and inconsistent. ChurnCue turns demo-safe customer data into a review queue while keeping outbound Slack communication behind explicit human approval.
 
 ## Solution and features
 
@@ -22,14 +22,14 @@ Customer-success managers need one reliable view of who may cancel, what changed
 ```mermaid
 flowchart LR
   Sheets[Google Sheets MCP\ndemo-safe customer data] --> Archestra[Archestra App\ninterface + MCP orchestrator]
-  Archestra --> CRM[ClientRevive MCP\ndeterministic ML]
+  Archestra --> CRM[ChurnCue MCP\ndeterministic ML]
   CRM --> DB[(SQLite metadata)]
   CRM --> Models[(joblib artifacts)]
   Archestra --> Approval{Human approval}
   Approval -->|approved only| Slack[Slack MCP]
 ```
 
-MCP is the typed boundary that lets Archestra invoke real tools instead of inventing browser-side results. ClientRevive never fetches Sheets and never sends Slack messages itself.
+MCP is the typed boundary that lets Archestra invoke real tools instead of inventing browser-side results. ChurnCue never fetches Sheets and never sends Slack messages itself.
 
 ## Technology
 
@@ -38,12 +38,12 @@ Python 3.12, official MCP Python SDK/FastMCP 1.28.1, pandas, NumPy, scikit-learn
 ## Project structure
 
 ```text
-src/clientrevive/       MCP server and business logic
-scripts/                reproducible demo-data generator
-data/demo/              anonymous generated CSV
-data/artifacts/         runtime model pipelines (ignored)
-tests/                  unit and integration-focused tests
-docs/                   architecture, Archestra setup/prompt, and demo script
+src/churncue/   MCP server and business logic
+scripts/        reproducible demo-data generator
+data/demo/      anonymous generated CSV
+data/artifacts/ runtime model pipelines (ignored)
+tests/          unit and integration-focused tests
+docs/           architecture, Archestra setup/prompt, and demo script
 ```
 
 ## Local setup
@@ -55,7 +55,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 python scripts/generate_demo_data.py
-clientrevive
+churncue
 ```
 
 The MCP URL is `http://localhost:8000/mcp`; the container health probe is `http://localhost:8000/health`. Test with `npx -y @modelcontextprotocol/inspector` and select Streamable HTTP.
@@ -72,7 +72,7 @@ From Archestra in Docker, register `http://host.docker.internal:8000/mcp`. On Li
 
 ## Environment variables
 
-All variables use the `CLIENTREVIVE_` prefix. See `.env.example`. Key settings are `HOST`, `PORT`, `DATABASE_PATH`, `ARTIFACT_DIR`, `DEMO_DATA_PATH`, `MAX_INPUT_ROWS`, `MAX_DEMO_ROWS`, `MAX_STRING_LENGTH`, `RANDOM_STATE`, and `LOG_LEVEL`. No API credentials are accepted or stored.
+All variables use the `CHURNCUE_` prefix. See `.env.example`. Key settings are `HOST`, `PORT`, `DATABASE_PATH`, `ARTIFACT_DIR`, `DEMO_DATA_PATH`, `MAX_INPUT_ROWS`, `MAX_DEMO_ROWS`, `MAX_STRING_LENGTH`, `RANDOM_STATE`, and `LOG_LEVEL`. No API credentials are accepted or stored.
 
 ## MCP tools
 
@@ -118,4 +118,4 @@ Add drift monitoring, calibrated thresholds, time-aware evaluation, object stora
 
 ## Hackathon submission
 
-This project demonstrates the division of responsibility central to the Archestra Apps Hackathon: Archestra generates and hosts the human workflow, MCP connects governed capabilities, Google Sheets supplies demo-safe records, ClientRevive computes every ML result deterministically, and Slack receives only approved communications. Follow the [three-minute demo](docs/DEMO_SCRIPT.md).
+This project demonstrates the division of responsibility central to the Archestra Apps Hackathon: Archestra generates and hosts the human workflow, MCP connects governed capabilities, Google Sheets supplies demo-safe records, ChurnCue computes every ML result deterministically, and Slack receives only approved communications. Follow the [three-minute demo](docs/DEMO_SCRIPT.md).
