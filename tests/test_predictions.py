@@ -1,8 +1,8 @@
 import pytest
 
-from clientrevive.prediction import compare_risk, score_rows
-from clientrevive.schemas import risk_level
-from clientrevive.security import ClientReviveError
+from churncue.prediction import compare_risk, score_rows
+from churncue.schemas import risk_level
+from churncue.security import ChurnCueError
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_weekly_movement_and_newly_at_risk():
 def test_malformed_prediction_rows(trained, demo_rows):
     settings, training = trained
     bad = dict(demo_rows[0], customer_id="real-person")
-    with pytest.raises(ClientReviveError, match="customer_id"):
+    with pytest.raises(ChurnCueError, match="customer_id"):
         score_rows(training["experiment_id"], [bad], settings)
-    with pytest.raises(ClientReviveError, match="requires valid"):
+    with pytest.raises(ChurnCueError, match="requires valid"):
         compare_risk([{"customer_id": "CUST-1", "churn_probability": 0.5}])

@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from clientrevive.prediction import compare_risk
-from clientrevive.schemas import ScoredCustomer
-from clientrevive.security import ClientReviveError, validate_rows
+from churncue.prediction import compare_risk
+from churncue.schemas import ScoredCustomer
+from churncue.security import ChurnCueError, validate_rows
 
 
 def rescue_report(scored_customers: list[dict[str, Any]]) -> dict[str, Any]:
@@ -12,7 +12,7 @@ def rescue_report(scored_customers: list[dict[str, Any]]) -> dict[str, Any]:
     try:
         validated = [ScoredCustomer.model_validate(row).model_dump() for row in scored_customers]
     except ValueError as error:
-        raise ClientReviveError("scored customer records are malformed") from error
+        raise ChurnCueError("scored customer records are malformed") from error
     movements = compare_risk(validated)
     movement_by_id = {row["customer_id"]: row for row in movements}
     high_risk = [row for row in validated if row["risk_level"] == "High"]
@@ -30,7 +30,7 @@ def rescue_report(scored_customers: list[dict[str, Any]]) -> dict[str, Any]:
         "Require human approval before posting the prepared Slack notification.",
     ]
     summary = (
-        f"ClientRevive weekly review: {len(high_risk)} high-risk and {len(newly_at_risk)} "
+        f"ChurnCue weekly review: {len(high_risk)} high-risk and {len(newly_at_risk)} "
         f"newly-at-risk customers. Estimated annual revenue at risk: ${annual:,.2f}. "
         "Review the priority queue and approve outreach actions."
     )

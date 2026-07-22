@@ -10,13 +10,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Validated runtime settings; secrets are intentionally not supported."""
 
-    model_config = SettingsConfigDict(env_prefix="CLIENTREVIVE_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="CHURNCUE_", env_file=".env", extra="ignore")
 
     # Binding all interfaces is required for the container boundary.
     host: str = "0.0.0.0"
     port: int = Field(default=8000, ge=1, le=65535)
     log_level: str = "INFO"
-    database_path: Path = Path("data/clientrevive.db")
+    database_path: Path = Path("data/churncue.db")
     artifact_dir: Path = Path("data/artifacts")
     demo_data_path: Path = Path("data/demo/customer_churn_demo.csv")
     max_input_rows: int = Field(default=5_000, ge=1, le=50_000)

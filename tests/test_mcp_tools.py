@@ -1,13 +1,15 @@
 import pytest
 
-from clientrevive.explanations import explain_record
-from clientrevive.reporting import rescue_report
-from clientrevive.security import ClientReviveError, validate_rows
-from clientrevive.server import health_check, profile_dataset
+from churncue.explanations import explain_record
+from churncue.reporting import rescue_report
+from churncue.security import ChurnCueError, validate_rows
+from churncue.server import health_check, profile_dataset
 
 
 def test_health_and_profile(demo_rows):
-    assert health_check()["status"] == "healthy"
+    health = health_check()
+    assert health["service"] == "ChurnCue"
+    assert health["status"] == "healthy"
     profile = profile_dataset(demo_rows[:20])
     assert profile["row_count"] == 20
     assert profile["target_distribution"]
@@ -64,11 +66,11 @@ def test_report_calculations_and_no_send():
 
 
 def test_input_limits_and_malformed_values():
-    with pytest.raises(ClientReviveError, match="at least one"):
+    with pytest.raises(ChurnCueError, match="at least one"):
         validate_rows([])
-    with pytest.raises(ClientReviveError, match="scalar"):
+    with pytest.raises(ChurnCueError, match="scalar"):
         validate_rows([{"nested": {"unsafe": True}}])
-    with pytest.raises(ClientReviveError, match="string limit"):
+    with pytest.raises(ChurnCueError, match="string limit"):
         validate_rows([{"value": "x" * 201}])
-    with pytest.raises(ClientReviveError, match="malformed"):
+    with pytest.raises(ChurnCueError, match="malformed"):
         rescue_report([{"customer_id": "CUST-1"}])

@@ -1,10 +1,10 @@
 import pytest
 
-from clientrevive.database import ExperimentStore
-from clientrevive.security import ClientReviveError
+from churncue.database import ExperimentStore
+from churncue.security import ChurnCueError
 
 
 def test_missing_experiment_is_safe(trained):
     settings, _ = trained
-    with pytest.raises(ClientReviveError, match="not found"):
+    with pytest.raises(ChurnCueError, match="not found"):
         ExperimentStore(settings).get("exp-missing")

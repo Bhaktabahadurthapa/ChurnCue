@@ -1,52 +1,91 @@
-# ChurnCue — ClientRevive Ops
+<div align="center">
+  <img src="assets/brand/churncue-mark.svg" alt="ChurnCue logo" width="112" />
 
-ClientRevive Ops is a production-oriented hackathon service that helps customer-success teams identify renewal risk every Monday. Archestra supplies the application interface and MCP orchestration; this server supplies deterministic profiling, model training, scoring, explanations, and reporting.
+  # ChurnCue
 
-## Problem and real business scenario
+  **Know who may leave. Understand the signal. Protect the renewal.**
 
-Customer-success managers need one reliable view of who may cancel, what changed, why the account is flagged, and how much revenue is exposed. Spreadsheet review is slow and inconsistent. ClientRevive turns demo-safe customer data into a review queue while keeping outbound Slack communication behind explicit human approval.
+  Production-oriented customer-retention intelligence for Archestra, powered by deterministic machine learning over MCP.
 
-## Solution and features
+  [![CI](https://github.com/Bhaktabahadurthapa/ChurnCue/actions/workflows/ci.yml/badge.svg)](https://github.com/Bhaktabahadurthapa/ChurnCue/actions/workflows/ci.yml)
+  [![CodeQL](https://github.com/Bhaktabahadurthapa/ChurnCue/actions/workflows/codeql.yml/badge.svg)](https://github.com/Bhaktabahadurthapa/ChurnCue/actions/workflows/codeql.yml)
+  [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+  [![MCP](https://img.shields.io/badge/MCP-Streamable_HTTP-7C3AED)](https://modelcontextprotocol.io/)
+  [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-22C55E.svg)](LICENSE)
 
-- 500 reproducible anonymous customers with behaviorally plausible churn relationships
-- Logistic Regression, Random Forest, and Gradient Boosting evaluated by scikit-learn
-- ROC-AUC recommendation with F1 tie-break; accuracy, precision, recall, F1, ROC-AUC, and confusion matrices
-- Leakage-safe preprocessing, missing-value imputation, one-hot encoding, and stratified evaluation
-- Persisted joblib pipelines and SQLite experiment metadata
-- Probability-based risk tiers, weekly movement, revenue at risk, evidence-based reason codes, and a Slack-ready preview
-- Eight validated FastMCP tools over stateless Streamable HTTP
-- Non-root Docker runtime, health check, persistent state, tests, coverage, and linting
+  [Quickstart](#quickstart) · [Architecture](docs/ARCHITECTURE.md) · [Archestra setup](docs/ARCHESTRA_SETUP.md) · [App prompt](docs/ARCHESTRA_APP_PROMPT.md) · [Demo script](docs/DEMO_SCRIPT.md)
+</div>
 
-## Architecture
+<img src="assets/brand/churncue-hero.png" alt="ChurnCue customer-retention intelligence pipeline" width="100%" />
+
+## The Monday-morning problem
+
+Customer-success teams repeatedly need to answer five questions before renewal risk becomes lost revenue:
+
+1. Which customers are likely to cancel?
+2. Who became riskier this week?
+3. Which observed signals explain the change?
+4. How much recurring revenue is exposed?
+5. What action should the team take next?
+
+ChurnCue converts anonymous customer-health records into a prioritized, evidence-backed rescue queue. It keeps model calculations in deterministic Python services and keeps outbound Slack notifications behind explicit human approval.
+
+## Why ChurnCue
+
+| Capability | What it delivers |
+|---|---|
+| Deterministic ML | All metrics and probabilities come from scikit-learn—not the LLM. |
+| Weekly movement | Compares current probability with prior risk and identifies newly-at-risk accounts. |
+| Revenue prioritization | Quantifies probability-weighted monthly and annual revenue exposure. |
+| Evidence, not guesswork | Returns stable reason codes from observed product, payment, support, login, renewal, and satisfaction signals. |
+| Governed operations | Generates a Slack-ready preview but never sends an external message. |
+| Production boundaries | Validated input limits, PII rejection, safe artifact resolution, structured logs, health checks, and non-root containers. |
+
+## System architecture
 
 ```mermaid
 flowchart LR
-  Sheets[Google Sheets MCP\ndemo-safe customer data] --> Archestra[Archestra App\ninterface + MCP orchestrator]
-  Archestra --> CRM[ClientRevive MCP\ndeterministic ML]
-  CRM --> DB[(SQLite metadata)]
-  CRM --> Models[(joblib artifacts)]
-  Archestra --> Approval{Human approval}
+  subgraph Sources[Customer data]
+    Sheets[Google Sheets MCP]
+    Demo[Anonymous demo CSV]
+  end
+
+  subgraph Archestra[Archestra]
+    App[ChurnCue App]
+    Orchestrator[MCP Orchestrator]
+    Approval{Human approval}
+  end
+
+  subgraph Service[ChurnCue MCP]
+    Profile[Profile + validate]
+    Train[Train + compare]
+    Score[Score + explain]
+    Report[Rescue report]
+  end
+
+  Sheets --> App
+  Demo --> Orchestrator
+  App --> Orchestrator --> Profile --> Train --> Score --> Report
+  Train --> Metadata[(SQLite metadata)]
+  Train --> Artifacts[(joblib artifacts)]
+  Report --> Approval
   Approval -->|approved only| Slack[Slack MCP]
 ```
 
-MCP is the typed boundary that lets Archestra invoke real tools instead of inventing browser-side results. ClientRevive never fetches Sheets and never sends Slack messages itself.
+**Archestra** is the authenticated application interface and MCP orchestrator. **ChurnCue MCP** owns deterministic analysis. **Google Sheets MCP** supplies demo-safe records. **Slack MCP** receives only messages that a human approves.
 
-## Technology
-
-Python 3.12, official MCP Python SDK/FastMCP 1.28.1, pandas, NumPy, scikit-learn, Pydantic, joblib, SQLite, pytest, ruff, Docker, and Compose. The MIT License permits broad reuse.
-
-## Project structure
+## Weekly review flow
 
 ```text
-src/clientrevive/       MCP server and business logic
-scripts/                reproducible demo-data generator
-data/demo/              anonymous generated CSV
-data/artifacts/         runtime model pipelines (ignored)
-tests/                  unit and integration-focused tests
-docs/                   architecture, Archestra setup/prompt, and demo script
+Load rows → Profile quality → Train 3 models → Select by ROC-AUC/F1
+         → Score customers → Compare weekly risk → Build rescue report
+         → Preview Slack message → Human approval → Slack MCP sends
 ```
 
-## Local setup
+## Quickstart
+
+### Run locally
 
 ```bash
 git clone https://github.com/Bhaktabahadurthapa/ChurnCue.git
@@ -55,67 +94,170 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 python scripts/generate_demo_data.py
-clientrevive
+churncue
 ```
 
-The MCP URL is `http://localhost:8000/mcp`; the container health probe is `http://localhost:8000/health`. Test with `npx -y @modelcontextprotocol/inspector` and select Streamable HTTP.
-
-## Docker setup
+Verify the service:
 
 ```bash
-docker compose up --build
+curl http://localhost:8000/health
+npx -y @modelcontextprotocol/inspector
+```
+
+Connect the Inspector to `http://localhost:8000/mcp` with **Streamable HTTP**.
+
+### Run with Docker
+
+```bash
+docker compose up --build -d
 docker compose ps
 curl http://localhost:8000/health
 ```
 
-From Archestra in Docker, register `http://host.docker.internal:8000/mcp`. On Linux, `extra_hosts: ["host.docker.internal:host-gateway"]` may be needed on the Archestra container; this project already applies it to its own service.
+Stop the service with `docker compose down`. SQLite metadata and model artifacts remain in named volumes.
 
-## Environment variables
+## Connect to Archestra
 
-All variables use the `CLIENTREVIVE_` prefix. See `.env.example`. Key settings are `HOST`, `PORT`, `DATABASE_PATH`, `ARTIFACT_DIR`, `DEMO_DATA_PATH`, `MAX_INPUT_ROWS`, `MAX_DEMO_ROWS`, `MAX_STRING_LENGTH`, `RANDOM_STATE`, and `LOG_LEVEL`. No API credentials are accepted or stored.
+Register a remote Streamable HTTP server in Archestra's Private MCP Registry:
 
-## MCP tools
+```text
+Name: ChurnCue
+URL:  http://host.docker.internal:8000/mcp
+```
 
-| Tool | Purpose |
+Linux-hosted Archestra containers may need `host.docker.internal:host-gateway`. Assign all eight tools to the app, then paste [the ready-to-use application prompt](docs/ARCHESTRA_APP_PROMPT.md) into Archestra Chat.
+
+## MCP tool surface
+
+| Tool | Responsibility | Key output |
+|---|---|---|
+| `health_check` | Runtime readiness | Name, version, transport, timestamp |
+| `load_demo_dataset` | Bounded anonymous demo loader | Structured customer records |
+| `profile_dataset` | Schema and quality analysis | Types, missing values, duplicates, summaries |
+| `train_models` | Reproducible model evaluation | Metrics, confusion matrices, recommended model |
+| `score_customers` | Probability and exposure scoring | Risk tier, revenue at risk, top signals |
+| `compare_weekly_risk` | Week-over-week movement | Change, direction, newly-at-risk flag |
+| `explain_risk` | Deterministic reason codes | Evidence and non-causality statement |
+| `generate_rescue_report` | Operational prioritization | Totals, priority queue, Slack-ready preview |
+
+Recommended call order:
+
+```text
+load_demo_dataset → profile_dataset → train_models → score_customers
+                  → compare_weekly_risk → generate_rescue_report
+```
+
+## Machine-learning pipeline
+
+| Stage | Implementation |
 |---|---|
-| `health_check` | Service/version/transport health |
-| `load_demo_dataset` | Read up to 500 demo rows |
-| `profile_dataset` | Quality, schema, distributions, and summaries |
-| `train_models` | Train/evaluate all models and persist the winner |
-| `score_customers` | Return probability, tier, revenue exposure, and signals |
-| `compare_weekly_risk` | Compare current probability to `previous_risk` |
-| `explain_risk` | Return deterministic non-causal reason codes |
-| `generate_rescue_report` | Aggregate the queue and prepare—not send—a Slack message |
+| Validation | Binary target, both classes, minimum sample size, bounded scalar records |
+| Leakage control | Drops `customer_id`, target, and prediction-derived fields |
+| Missing values | Median imputation for numeric; most-frequent imputation for categorical |
+| Encoding | Standard scaling and unknown-safe one-hot encoding |
+| Evaluation | Fixed 80/20 stratified split with random state 42 |
+| Models | Logistic Regression, Random Forest, Gradient Boosting |
+| Metrics | Accuracy, precision, recall, F1, ROC-AUC, confusion matrix |
+| Selection | Highest ROC-AUC with F1 as the tie-breaker |
+| Persistence | Complete pipeline in joblib; immutable experiment metadata in SQLite |
 
-Typical order: load rows → profile → train → score (use returned `experiment_id`) → compare → report. See [Archestra setup](docs/ARCHESTRA_SETUP.md) and the [paste-ready app prompt](docs/ARCHESTRA_APP_PROMPT.md).
+The included dataset contains 500 reproducible synthetic customers and no real personal data.
 
-## Testing
+## Configuration
+
+All runtime variables use the `CHURNCUE_` prefix. Safe defaults are documented in [.env.example](.env.example).
+
+| Variable | Default | Purpose |
+|---|---:|---|
+| `CHURNCUE_HOST` | `0.0.0.0` | Container listener address |
+| `CHURNCUE_PORT` | `8000` | MCP and health port |
+| `CHURNCUE_DATABASE_PATH` | `data/churncue.db` | Experiment metadata database |
+| `CHURNCUE_ARTIFACT_DIR` | `data/artifacts` | Trusted model artifact directory |
+| `CHURNCUE_DEMO_DATA_PATH` | `data/demo/customer_churn_demo.csv` | Packaged demo source |
+| `CHURNCUE_MAX_INPUT_ROWS` | `5000` | Maximum MCP input records |
+| `CHURNCUE_MAX_DEMO_ROWS` | `500` | Maximum demo records returned |
+| `CHURNCUE_MAX_STRING_LENGTH` | `200` | Scalar string boundary |
+| `CHURNCUE_RANDOM_STATE` | `42` | Reproducible ML seed |
+| `CHURNCUE_PUBLISHED_PORT` | `8000` | Optional Compose host-port override |
+
+No API keys or customer credentials belong in this repository.
+
+## Security and privacy
+
+- Anonymous `CUST-*` identifiers only; common PII fields are rejected at the MCP boundary.
+- Row, field, string, probability, and schema limits defend resource boundaries.
+- Experiment IDs resolve only to service-created artifacts below the configured directory.
+- The service performs no arbitrary code execution, arbitrary path reads, browser fetches, or outbound messages.
+- Containers run as UID/GID `10001`, drop Linux capabilities, and enable `no-new-privileges`.
+- Production deployments should terminate authenticated TLS at Archestra or a trusted gateway.
+
+Review [SECURITY.md](SECURITY.md) before production use or vulnerability reporting.
+
+## Repository layout
+
+```text
+.
+├── assets/brand/          # Repository identity and hero artwork
+├── data/demo/             # Reproducible anonymous dataset
+├── data/artifacts/        # Runtime model pipelines (ignored)
+├── docs/                  # Archestra, architecture, and demo guides
+├── scripts/               # Demo-data generation
+├── src/churncue/          # MCP server and deterministic business logic
+├── tests/                 # Core behavior and boundary coverage
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
+```
+
+## Engineering quality
 
 ```bash
 ruff check .
 ruff format --check .
 pytest
-# or: make check
 ```
 
-## Security and privacy
+The test configuration enforces at least 80% core coverage. CI runs linting, formatting, tests, package installation, and a container build on every pull request.
 
-The demo contains anonymous IDs only—no names, email addresses, phone numbers, or real data. Inputs have row, field, and string limits. Model identifiers resolve through SQLite to the configured artifact directory, blocking arbitrary paths. The service does not execute supplied code, log rows or secrets, call external services, or send Slack messages. Binding `0.0.0.0` is required for Docker; expose it only on a trusted network and add gateway authentication/TLS for production.
+## Documentation
 
-## Screenshots and demo video
+| Guide | Audience |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | Engineers and security reviewers |
+| [Archestra setup](docs/ARCHESTRA_SETUP.md) | Operators connecting MCP services |
+| [Archestra app prompt](docs/ARCHESTRA_APP_PROMPT.md) | App builders generating the interface |
+| [Three-minute demo](docs/DEMO_SCRIPT.md) | Hackathon presenters |
+| [Contributing](CONTRIBUTING.md) | Contributors and maintainers |
+| [Security](SECURITY.md) | Vulnerability reporters and operators |
 
-- Screenshot placeholder: Archestra weekly review dashboard
-- Screenshot placeholder: customer evidence and approval dialog
-- Demo video placeholder: add the final sub-three-minute recording URL
+## Demo and screenshots
+
+The repository includes the complete [sub-three-minute demo runbook](docs/DEMO_SCRIPT.md). Add the final public video URL and Archestra screenshots here after recording; no mock browser results are presented as real product output.
 
 ## Known limitations
 
-The synthetic model is a demonstration, not a production churn policy. Threshold explanations are operational signals rather than SHAP/local causal explanations. SQLite and local artifacts suit a single service instance. Authentication and TLS are expected at the Archestra/gateway or deployment layer. Risk thresholds are fixed product rules.
+- Synthetic training data demonstrates the workflow; it is not a production churn policy.
+- Threshold reason codes are operational signals, not causal or SHAP explanations.
+- SQLite and local artifacts target a single service instance.
+- Risk thresholds are fixed product rules and should be calibrated before production use.
+- Authentication, authorization, TLS, Sheets access, and Slack delivery are external deployment responsibilities.
 
 ## Roadmap
 
-Add drift monitoring, calibrated thresholds, time-aware evaluation, object storage, a managed metadata database, tenant-aware authorization, audit events for interventions, and feedback-driven retraining.
+- Time-aware evaluation, probability calibration, and drift monitoring
+- Managed metadata storage and object-backed model artifacts
+- Tenant-aware authorization and intervention audit events
+- Feedback-driven retraining and intervention outcome measurement
+- Published container releases with signed provenance and SBOMs
 
-## Hackathon submission
+## Contributing and license
 
-This project demonstrates the division of responsibility central to the Archestra Apps Hackathon: Archestra generates and hosts the human workflow, MCP connects governed capabilities, Google Sheets supplies demo-safe records, ClientRevive computes every ML result deterministically, and Slack receives only approved communications. Follow the [three-minute demo](docs/DEMO_SCRIPT.md).
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), follow the [Code of Conduct](CODE_OF_CONDUCT.md), and use the issue templates for reproducible reports.
+
+ChurnCue is available under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+  Built for the Archestra Apps Hackathon with Python, scikit-learn, FastMCP, and human judgment.
+</div>

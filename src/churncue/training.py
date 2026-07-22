@@ -21,10 +21,10 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from clientrevive.config import Settings, get_settings
-from clientrevive.database import ExperimentStore
-from clientrevive.preprocessing import build_preprocessor, prepare_training_data
-from clientrevive.security import ClientReviveError, validate_rows
+from churncue.config import Settings, get_settings
+from churncue.database import ExperimentStore
+from churncue.preprocessing import build_preprocessor, prepare_training_data
+from churncue.security import ChurnCueError, validate_rows
 
 
 def _models(random_state: int) -> dict[str, ClassifierMixin]:
@@ -62,11 +62,11 @@ def train_model_suite(
     settings = settings or get_settings()
     validate_rows(rows, settings=settings)
     if len(rows) < 20:
-        raise ClientReviveError("at least 20 rows are required for a reliable stratified split")
+        raise ChurnCueError("at least 20 rows are required for a reliable stratified split")
     prepared = prepare_training_data(pd.DataFrame(rows), target_column)
     class_counts = prepared.target.value_counts()
     if class_counts.min() < 2:
-        raise ClientReviveError("each target class must contain at least two rows")
+        raise ChurnCueError("each target class must contain at least two rows")
     try:
         x_train, x_test, y_train, y_test = train_test_split(
             prepared.features,
@@ -76,7 +76,7 @@ def train_model_suite(
             random_state=settings.random_state,
         )
     except ValueError as error:
-        raise ClientReviveError(
+        raise ChurnCueError(
             "dataset cannot be split safely; add more rows per target class"
         ) from error
 

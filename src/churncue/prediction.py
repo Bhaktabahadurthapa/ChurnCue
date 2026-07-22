@@ -6,11 +6,11 @@ from typing import Any
 import joblib
 import pandas as pd
 
-from clientrevive.config import Settings, get_settings
-from clientrevive.database import ExperimentStore
-from clientrevive.explanations import risk_factors
-from clientrevive.schemas import ScoredCustomer, risk_level
-from clientrevive.security import ClientReviveError, validate_rows
+from churncue.config import Settings, get_settings
+from churncue.database import ExperimentStore
+from churncue.explanations import risk_factors
+from churncue.schemas import ScoredCustomer, risk_level
+from churncue.security import ChurnCueError, validate_rows
 
 
 def _load_artifact(experiment_id: str, settings: Settings) -> dict[str, Any]:
@@ -18,11 +18,11 @@ def _load_artifact(experiment_id: str, settings: Settings) -> dict[str, Any]:
     artifact = Path(experiment["model_artifact_path"]).resolve()
     allowed_dir = Path(settings.artifact_dir).resolve()
     if allowed_dir not in artifact.parents or not artifact.is_file():
-        raise ClientReviveError("model artifact is unavailable")
+        raise ChurnCueError("model artifact is unavailable")
     try:
         return joblib.load(artifact)
     except Exception as error:  # joblib formats have several load exceptions
-        raise ClientReviveError("model artifact could not be loaded") from error
+        raise ChurnCueError("model artifact could not be loaded") from error
 
 
 def score_rows(
@@ -39,21 +39,21 @@ def score_rows(
     try:
         probabilities = artifact["pipeline"].predict_proba(features)[:, 1]
     except (TypeError, ValueError) as error:
-        raise ClientReviveError("customer rows do not match the trained feature schema") from error
+        raise ChurnCueError("customer rows do not match the trained feature schema") from error
     results = []
     for index, (record, probability) in enumerate(zip(rows, probabilities, strict=True)):
         customer_id = record.get("customer_id")
         if not isinstance(customer_id, str) or not customer_id.startswith("CUST-"):
-            raise ClientReviveError(f"row {index} has an invalid anonymous customer_id")
+            raise ChurnCueError(f"row {index} has an invalid anonymous customer_id")
         try:
             revenue = max(0.0, float(record.get("monthly_revenue", 0)))
         except (TypeError, ValueError) as error:
-            raise ClientReviveError(f"row {index} has invalid monthly_revenue") from error
+            raise ChurnCueError(f"row {index} has invalid monthly_revenue") from error
         previous = record.get("previous_risk")
         try:
             previous_value = None if previous is None else float(previous)
         except (TypeError, ValueError) as error:
-            raise ClientReviveError(f"row {index} has invalid previous_risk") from error
+            raise ChurnCueError(f"row {index} has invalid previous_risk") from error
         result = ScoredCustomer(
             customer_id=customer_id,
             churn_probability=round(float(probability), 6),
@@ -75,11 +75,11 @@ def compare_risk(scored_customers: list[dict[str, Any]]) -> list[dict[str, Any]]
             current = float(row["churn_probability"])
             previous = float(row["previous_risk"])
         except (KeyError, TypeError, ValueError) as error:
-            raise ClientReviveError(
+            raise ChurnCueError(
                 f"row {index} requires valid churn_probability and previous_risk"
             ) from error
         if not 0 <= current <= 1 or not 0 <= previous <= 1:
-            raise ClientReviveError(f"row {index} risk probabilities must be between 0 and 1")
+            raise ChurnCueError(f"row {index} risk probabilities must be between 0 and 1")
         change = round(current - previous, 6)
         movement = (
             "Increased" if change > 0.001 else "Decreased" if change < -0.001 else "Unchanged"

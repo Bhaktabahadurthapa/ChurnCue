@@ -5,8 +5,8 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-from clientrevive.config import Settings, get_settings
-from clientrevive.security import ClientReviveError
+from churncue.config import Settings, get_settings
+from churncue.security import ChurnCueError
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS experiments (
@@ -51,13 +51,13 @@ class ExperimentStore:
 
     def get(self, experiment_id: str) -> dict[str, Any]:
         if not experiment_id or len(experiment_id) > 100:
-            raise ClientReviveError("invalid experiment_id")
+            raise ChurnCueError("invalid experiment_id")
         with self._connect() as connection:
             row = connection.execute(
                 "SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,)
             ).fetchone()
         if row is None:
-            raise ClientReviveError("experiment was not found")
+            raise ChurnCueError("experiment was not found")
         result = dict(row)
         result["model_metrics"] = json.loads(result["model_metrics"])
         return result

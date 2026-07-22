@@ -2,9 +2,9 @@
 
 ## Boundaries
 
-Archestra owns the UI, orchestration, tool assignment, authentication states, user preferences, and shared intervention state. A customer-data MCP (for example Google Sheets) owns source reads. ClientRevive owns deterministic calculations and its experiment state. Slack MCP owns delivery, and may be invoked only after an explicit approval step in the app.
+Archestra owns the UI, orchestration, tool assignment, authentication states, user preferences, and shared intervention state. A customer-data MCP (for example Google Sheets) owns source reads. ChurnCue owns deterministic calculations and its experiment state. Slack MCP owns delivery, and may be invoked only after an explicit approval step in the app.
 
-ClientRevive accepts JSON records, validates bounded scalar inputs, transforms them into pandas frames, and delegates all learned metrics and probabilities to scikit-learn. It never treats LLM calculations as model output.
+ChurnCue accepts JSON records, validates bounded scalar inputs, transforms them into pandas frames, and delegates all learned metrics and probabilities to scikit-learn. It never treats LLM calculations as model output.
 
 ## Training flow
 
