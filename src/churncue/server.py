@@ -14,7 +14,7 @@ from churncue import __version__
 from churncue.config import get_settings
 from churncue.explanations import explain_record
 from churncue.prediction import compare_risk, score_rows
-from churncue.reporting import rescue_report
+from churncue.reporting import portfolio_insights, rescue_report
 from churncue.security import ChurnCueError, validate_rows
 from churncue.training import train_model_suite
 
@@ -236,6 +236,13 @@ def generate_rescue_report(score_run_id: str) -> dict[str, Any]:
     """Prepare an operational report and Slack preview without sending anything."""
     report = rescue_report(_get_score_run(score_run_id)["scored_customers"])
     return {"score_run_id": score_run_id, **report}
+
+
+@mcp.tool()
+def get_portfolio_insights(score_run_id: str) -> dict[str, Any]:
+    """Return plan and renewal-window segments for prioritizing the rescue queue."""
+    insights = portfolio_insights(_get_score_run(score_run_id)["scored_customers"])
+    return {"score_run_id": score_run_id, **insights}
 
 
 def main() -> None:

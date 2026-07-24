@@ -50,6 +50,7 @@ def test_mcp_tool_arguments_use_identifiers():
         server.compare_weekly_risk: ["score_run_id"],
         server.explain_risk: ["score_run_id", "customer_id"],
         server.generate_rescue_report: ["score_run_id"],
+        server.get_portfolio_insights: ["score_run_id"],
     }
     for tool, argument_names in expected.items():
         assert list(signature(tool).parameters) == argument_names
@@ -91,6 +92,10 @@ def test_identifier_workflow(isolated_server):
     report = server.generate_rescue_report(score_run_id)
     assert report["total_customers"] == 50
     assert report["slack_message_sent"] is False
+    insights = server.get_portfolio_insights(score_run_id)
+    assert insights["total_customers"] == 50
+    assert insights["plan_segments"]
+    assert insights["renewal_segments"]
 
 
 def test_unknown_runtime_identifiers_are_rejected():
@@ -113,6 +118,8 @@ def test_explanation_is_evidence_based():
     )
     assert "Product usage decreased significantly" in result["reason_codes"]
     assert "do not establish causation" in result["interpretation"]
+    assert result["next_best_action"]
+    assert result["recommended_contact_window"] == "Within 1 business day"
 
 
 def test_report_calculations_and_no_send():

@@ -43,7 +43,7 @@ Open the installed connection's MCP Inspector, connect, list tools, select `heal
 
 ## 6. Assign tools to the app
 
-Create/open the Archestra App, assign all eight ChurnCue tools, and paste `ARCHESTRA_APP_PROMPT.md` into Archestra Chat. Tool assignment is required; the generated app must not calculate or fabricate ML output in browser code.
+Create/open the Archestra App, assign all nine ChurnCue tools, and paste `ARCHESTRA_APP_PROMPT.md` into Archestra Chat. Tool assignment is required; the generated app must not calculate or fabricate ML output in browser code.
 
 ## 7. Add production data ingestion later
 
