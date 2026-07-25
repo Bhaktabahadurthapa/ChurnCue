@@ -2,7 +2,7 @@ services:
   churncue-mcp:
     build: .
     ports:
-      - "${CHURNCUE_PUBLISHED_PORT:-8000}:8000"
+      - "${CHURNCUE_PUBLISHED_PORT:-8001}:8000"
     environment:
       CHURNCUE_HOST: 0.0.0.0
       CHURNCUE_PORT: 8000

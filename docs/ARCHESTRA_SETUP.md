@@ -25,17 +25,17 @@ In Studio, open **Model Providers** (older builds may say **Settings → LLM API
 
 ## 3. Start ChurnCue
 
-From this repository run `docker compose up --build`, then verify `curl http://localhost:8000/health` returns `healthy`.
+From this repository run `docker compose up --build`, then verify `curl http://localhost:8001/health` returns `healthy`.
 
 ## 4. Register the remote MCP server
 
 Open **MCP Registry / Private MCP Registry**, create a remote server named **ChurnCue**, select **Streamable HTTP**, and enter:
 
 ```text
-http://host.docker.internal:8000/mcp
+http://host.docker.internal:8001/mcp
 ```
 
-If Archestra itself runs directly on the host, use `http://localhost:8000/mcp`. Linux Docker users must add `host.docker.internal:host-gateway` to the Archestra container as shown above. Save/install the registry entry. Do not enter credentials; this local demo server has none.
+If Archestra itself runs directly on the host, use `http://localhost:8001/mcp`. Linux Docker users must add `host.docker.internal:host-gateway` to the Archestra container as shown above. Save/install the registry entry. Do not enter credentials; this local demo server has none.
 
 ## 5. Inspect health
 
@@ -59,7 +59,7 @@ Rebuild/restart ChurnCue, return to the installed MCP connection, choose **Refre
 
 ## 10. Troubleshooting
 
-- **Connection refused:** check `docker compose ps`, port 8000, `/health`, and whether Archestra needs `host.docker.internal`.
+- **Connection refused:** check `docker compose ps`, port 8001, `/health`, and whether Archestra needs `host.docker.internal`.
 - **404:** use exactly `/mcp`; `/health` is only a container probe.
 - **406/400 in curl:** MCP requires a protocol initialization and correct Accept headers; use MCP Inspector.
 - **No tools in App:** install the registry connection, refresh tools, and explicitly assign them.
