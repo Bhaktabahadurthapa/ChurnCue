@@ -93,7 +93,7 @@ The block diagram follows a real customer-success request: **“Which customers 
 
 1. The manager asks the business question in Archestra.
 2. The Archestra agent selects only the approved ChurnCue tools. Access controls, guardrails, and activity logs govern the interaction.
-3. ChurnCue MCP exposes the prediction workflow through eight bounded tools.
+3. ChurnCue MCP exposes the prediction workflow through nine bounded tools, including portfolio segmentation and next-best-action evidence.
 4. The deterministic machine-learning pipeline trains, scores, and ranks customers, returning verified scores and compact identifiers.
 5. The model explains those tool-produced results without inventing calculations.
 6. Archestra presents a prioritized rescue report so the manager knows whom to contact first.
@@ -102,7 +102,7 @@ The block diagram follows a real customer-success request: **“Which customers 
 
 ```text
 Load demo → dataset_id → Profile quality → Train 3 models → experiment_id
-          → Score customers → score_run_id → Compare risk → Rescue report
+          → Score customers → score_run_id → Compare risk → Portfolio insights → Rescue report
           → Preview Slack message → Human approval → Slack MCP sends
 ```
 
@@ -123,18 +123,18 @@ churncue
 Verify the service:
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8001/health
 npx -y @modelcontextprotocol/inspector
 ```
 
-Connect the Inspector to `http://localhost:8000/mcp` with **Streamable HTTP**.
+Connect the Inspector to `http://localhost:8001/mcp` with **Streamable HTTP**.
 
 ### Run with Docker
 
 ```bash
 docker compose up --build -d
 docker compose ps
-curl http://localhost:8000/health
+curl http://localhost:8001/health
 ```
 
 Stop the service with `docker compose down`. SQLite metadata and model artifacts remain in named volumes.
@@ -145,10 +145,10 @@ Register a remote Streamable HTTP server in Archestra's Private MCP Registry:
 
 ```text
 Name: ChurnCue
-URL:  http://host.docker.internal:8000/mcp
+URL:  http://host.docker.internal:8001/mcp
 ```
 
-Linux-hosted Archestra containers may need `host.docker.internal:host-gateway`. Assign all eight tools to the app, then paste [the ready-to-use application prompt](docs/ARCHESTRA_APP_PROMPT.md) into Archestra Chat.
+Linux-hosted Archestra containers may need `host.docker.internal:host-gateway`. Assign all nine tools to the app, then paste [the ready-to-use application prompt](docs/ARCHESTRA_APP_PROMPT.md) into Archestra Chat.
 
 ## MCP tool surface
 
@@ -162,13 +162,14 @@ Linux-hosted Archestra containers may need `host.docker.internal:host-gateway`. 
 | `compare_weekly_risk` | Compare a score run by ID | Movement totals and top-change preview |
 | `explain_risk` | Deterministic reason codes | Evidence and non-causality statement |
 | `generate_rescue_report` | Operational prioritization | Totals, priority queue, Slack-ready preview |
+| `get_portfolio_insights` | Segment prioritization | Plan and renewal-window exposure, focus recommendation |
 
 Recommended call order:
 
 ```text
 load_demo_dataset → dataset_id → profile_dataset + train_models
 dataset_id + experiment_id → score_customers → score_run_id
-score_run_id → compare_weekly_risk + explain_risk + generate_rescue_report
+score_run_id → compare_weekly_risk + get_portfolio_insights + explain_risk + generate_rescue_report
 ```
 
 ## Machine-learning pipeline
@@ -202,7 +203,7 @@ All runtime variables use the `CHURNCUE_` prefix. Safe defaults are documented i
 | `CHURNCUE_MAX_DEMO_ROWS` | `50` | Maximum records stored in one demo dataset |
 | `CHURNCUE_MAX_STRING_LENGTH` | `200` | Scalar string boundary |
 | `CHURNCUE_RANDOM_STATE` | `42` | Reproducible ML seed |
-| `CHURNCUE_PUBLISHED_PORT` | `8000` | Optional Compose host-port override |
+| `CHURNCUE_PUBLISHED_PORT` | `8001` | Optional Compose host-port override |
 
 No API keys or customer credentials belong in this repository.
 

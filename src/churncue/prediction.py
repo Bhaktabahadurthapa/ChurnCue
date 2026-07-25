@@ -63,7 +63,13 @@ def score_rows(
             top_risk_factors=risk_factors(record)[:3],
             previous_risk=previous_value,
         )
-        results.append(result.model_dump())
+        scored = result.model_dump()
+        # These are non-PII routing dimensions used by the review UI. Keep the
+        # customer row itself inside the service; only compact scored fields are returned.
+        for field in ("plan", "renewal_days"):
+            if field in record:
+                scored[field] = record[field]
+        results.append(scored)
     return results
 
 
